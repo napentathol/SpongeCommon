@@ -99,7 +99,7 @@ public abstract class MixinDedicatedServer extends MinecraftServer implements Se
         // Mods such as ComputerCraft and Thaumcraft check this method before attempting to set a blockstate.
         final CauseTracker causeTracker = CauseTracker.getInstance();
         final PhaseData peek = causeTracker.getCurrentPhaseData();
-        final IPhaseState phaseState = peek.state;
+        final IPhaseState<?> phaseState = peek.state;
         if (phaseState == null || !phaseState.isInteraction()) {
             if (SpongeCommonEventFactory.callChangeBlockEventPre((IMixinWorldServer) worldIn, pos, NamedCause.of(NamedCause.BLOCK_PROTECTED, worldIn), playerIn).isCancelled()) {
                 return true;

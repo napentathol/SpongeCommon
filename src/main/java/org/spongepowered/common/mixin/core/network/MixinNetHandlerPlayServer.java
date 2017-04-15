@@ -198,7 +198,7 @@ public abstract class MixinNetHandlerPlayServer implements PlayerConnection, IMi
             return;
         }
         final CauseTracker causeTracker = CauseTracker.getInstance();
-        causeTracker.switchToPhase(TickPhase.Tick.PLAYER, PhaseContext.start()
+        causeTracker.switchToPhase(TickPhase.Tick.PLAYER, TickPhase.Tick.PLAYER.start()
                 .add(NamedCause.source(player))
                 .addCaptures()
                 .addEntityDropCaptures()

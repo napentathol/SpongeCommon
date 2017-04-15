@@ -27,6 +27,7 @@ package org.spongepowered.common.event.tracking.phase.generation;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
+import net.minecraft.util.math.BlockPos;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.event.SpongeEventFactory;
 import org.spongepowered.api.event.cause.Cause;
@@ -34,12 +35,12 @@ import org.spongepowered.api.event.entity.SpawnEntityEvent;
 import org.spongepowered.api.world.World;
 import org.spongepowered.common.SpongeImpl;
 import org.spongepowered.common.entity.EntityUtil;
-import org.spongepowered.common.event.InternalNamedCauses;
+import org.spongepowered.common.event.tracking.CauseTracker;
 import org.spongepowered.common.event.tracking.IPhaseState;
 import org.spongepowered.common.event.tracking.PhaseContext;
-import org.spongepowered.common.event.tracking.TrackingUtil;
 import org.spongepowered.common.event.tracking.phase.TrackingPhase;
 import org.spongepowered.common.event.tracking.phase.TrackingPhases;
+import org.spongepowered.common.interfaces.world.IMixinWorldServer;
 import org.spongepowered.common.registry.type.event.InternalSpawnTypes;
 
 import java.util.HashSet;
@@ -49,9 +50,9 @@ import java.util.Set;
 /**
  * A generalized
  */
-class GeneralGenerationPhaseState implements IPhaseState {
+class GeneralGenerationPhaseState implements IPhaseState<GenerationContext> {
 
-    private Set<IPhaseState> compatibleStates = new HashSet<>();
+    private Set<IPhaseState<?>> compatibleStates = new HashSet<>();
     private boolean isBaked = false;
     private final String id;
 
@@ -59,7 +60,7 @@ class GeneralGenerationPhaseState implements IPhaseState {
         this.id = id;
     }
 
-    final GeneralGenerationPhaseState addCompatibleState(IPhaseState state) {
+    final GeneralGenerationPhaseState addCompatibleState(IPhaseState<?> state) {
         if (this.isBaked) {
             throw new IllegalStateException("This state is already baked! " + this.id);
         }
@@ -82,7 +83,12 @@ class GeneralGenerationPhaseState implements IPhaseState {
     }
 
     @Override
-    public final boolean canSwitchTo(IPhaseState state) {
+    public GenerationContext start() {
+        return new GenerationContext();
+    }
+
+    @Override
+    public final boolean canSwitchTo(IPhaseState<?> state) {
         return this.compatibleStates.contains(state);
     }
 
@@ -92,15 +98,14 @@ class GeneralGenerationPhaseState implements IPhaseState {
     }
 
 
-    Cause provideSpawnCause(PhaseContext context) {
+    Cause provideSpawnCause(GenerationContext context) {
         return Cause.source(InternalSpawnTypes.SpawnCauses.WORLD_SPAWNER_CAUSE)
-            .named("World", context
-                .firstNamed(InternalNamedCauses.WorldGeneration.WORLD, World.class)
-                .orElseThrow(TrackingUtil.throwWithContext("Expected a world during generation!", context)))
+            .named("World", context.getWorld())
             .build();
     }
 
-    public final void unwind(PhaseContext context) {
+    @SuppressWarnings("unchecked")
+    public final void unwind(GenerationContext context) {
         final List<Entity> spawnedEntities = context.getCapturedEntitySupplier().orEmptyList();
         if (spawnedEntities.isEmpty()) {
             return;
@@ -114,6 +119,16 @@ class GeneralGenerationPhaseState implements IPhaseState {
                 EntityUtil.getMixinWorld(entity).forceSpawnEntity(entity);
             }
         }
+
+    }
+
+    @Override
+    public boolean appendPreBlockProtectedCheck(Cause.Builder builder, GenerationContext context, CauseTracker causeTracker) {
+        return false;
+    }
+
+    @Override
+    public void appendNotifierPreBlockTick(IMixinWorldServer mixinWorld, BlockPos pos, GenerationContext context, PhaseContext<?> newContext) {
 
     }
 

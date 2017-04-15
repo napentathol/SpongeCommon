@@ -47,12 +47,12 @@ class DimensionTickPhaseState extends TickPhaseState {
     }
 
     @Override
-    public boolean canSwitchTo(IPhaseState state) {
+    public boolean canSwitchTo(IPhaseState<?> state) {
         return super.canSwitchTo(state) || state.getPhase() == TrackingPhases.DRAGON;
     }
 
     @Override
-    public void processPostTick(PhaseContext phaseContext) {
+    public void unwind(PhaseContext<?> phaseContext) {
         phaseContext.getCapturedBlockSupplier()
                 .ifPresentAndNotEmpty(blockSnapshots -> {
                     TrackingUtil.processBlockCaptures(blockSnapshots, this, phaseContext);
@@ -96,7 +96,7 @@ class DimensionTickPhaseState extends TickPhaseState {
                 });
     }
     @Override
-    public void associateAdditionalBlockChangeCauses(PhaseContext context, Cause.Builder builder) {
+    public void associateAdditionalBlockChangeCauses(PhaseContext<?> context, Cause.Builder builder) {
 
     }
 
@@ -111,7 +111,7 @@ class DimensionTickPhaseState extends TickPhaseState {
 
      */
     @Override
-    public boolean spawnEntityOrCapture(PhaseContext context, Entity entity, int chunkX, int chunkZ) {
+    public boolean spawnEntityOrCapture(PhaseContext<?> context, Entity entity, int chunkX, int chunkZ) {
         final net.minecraft.entity.Entity minecraftEntity = (net.minecraft.entity.Entity) entity;
         final WorldServer minecraftWorld = (WorldServer) minecraftEntity.world;
         final User user = context.getNotifier().orElseGet(() -> context.getOwner().orElse(null));

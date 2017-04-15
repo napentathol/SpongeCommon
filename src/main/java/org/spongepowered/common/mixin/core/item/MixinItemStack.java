@@ -153,7 +153,7 @@ public abstract class MixinItemStack implements ItemStack, IMixinItemStack, IMix
         if (!worldIn.isRemote) {
             final CauseTracker causeTracker = CauseTracker.getInstance();
             final PhaseData peek = causeTracker.getCurrentPhaseData();
-            final IPhaseState state = peek.state;
+            final IPhaseState<?> state = peek.state;
             state.getPhase().capturePlayerUsingStackToBreakBlock(this, (EntityPlayerMP) playerIn, state, peek.context, causeTracker);
         }
     }

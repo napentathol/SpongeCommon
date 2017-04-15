@@ -77,7 +77,7 @@ public class SpongeBlockVolumeWorker<V extends BlockVolume> implements BlockVolu
         final int zMax = unmodifiableVolume.getBlockMax().getZ();
         // a single go, requiring only one event
         if (CauseTracker.ENABLED) {
-            CauseTracker.getInstance().switchToPhase(PluginPhase.State.BLOCK_WORKER, PhaseContext.start()
+            CauseTracker.getInstance().switchToPhase(PluginPhase.State.BLOCK_WORKER, PluginPhase.State.BLOCK_WORKER.start()
                 .add(NamedCause.source(this))
                 .addCaptures()
                 .complete());
@@ -117,7 +117,7 @@ public class SpongeBlockVolumeWorker<V extends BlockVolume> implements BlockVolu
         // TODO integrate with the cause tracker to handle the block sets in
         // a single go, requiring only one event
         if (CauseTracker.ENABLED) {
-            CauseTracker.getInstance().switchToPhase(PluginPhase.State.BLOCK_WORKER, PhaseContext.start()
+            CauseTracker.getInstance().switchToPhase(PluginPhase.State.BLOCK_WORKER, PluginPhase.State.BLOCK_WORKER.start()
                 .add(NamedCause.source(this))
                 .addCaptures()
                 .complete());
@@ -145,7 +145,7 @@ public class SpongeBlockVolumeWorker<V extends BlockVolume> implements BlockVolu
         final int yMax = this.volume.getBlockMax().getY();
         final int zMax = this.volume.getBlockMax().getZ();
         if (CauseTracker.ENABLED) {
-            CauseTracker.getInstance().switchToPhase(PluginPhase.State.BLOCK_WORKER, PhaseContext.start()
+            CauseTracker.getInstance().switchToPhase(PluginPhase.State.BLOCK_WORKER, PluginPhase.State.BLOCK_WORKER.start()
                 .add(NamedCause.source(this))
                 .addCaptures()
                 .complete());

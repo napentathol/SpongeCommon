@@ -260,15 +260,16 @@ public final class EntityUtil {
         return handleDisplaceEntityTeleportEvent(entityIn, fromTransform, toTransform, false);
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static MoveEntityEvent.Teleport handleDisplaceEntityTeleportEvent(Entity entityIn, Transform<World> fromTransform, Transform<World> toTransform, boolean apiCall) {
 
         // Use origin world to get correct cause
         final CauseTracker causeTracker = CauseTracker.getInstance();
         final PhaseData peek = causeTracker.getCurrentPhaseData();
-        final IPhaseState state = peek.state;
-        final PhaseContext context = peek.context;
+        final IPhaseState<?> state = peek.state;
+        final PhaseContext<?> context = peek.context;
 
-        final Cause teleportCause = state.getPhase().generateTeleportCause(state, context);
+        final Cause teleportCause = ((IPhaseState) state).generateTeleportCause(context);
 
         MoveEntityEvent.Teleport event = SpongeEventFactory.createMoveEntityEventTeleport(teleportCause, fromTransform, toTransform, (org.spongepowered.api.entity.Entity) entityIn);
         SpongeImpl.postEvent(event);
@@ -332,7 +333,7 @@ public final class EntityUtil {
             ((IMixinNetHandlerPlayServer) ((EntityPlayerMP) entityIn).connection).setAllowClientLocationUpdate(false);
         }
 
-        final PhaseContext context = PhaseContext.start();
+        final PhaseContext context = EntityPhase.State.CHANGING_DIMENSION.start();
         context.add(NamedCause.source(mixinEntity))
                 // unused, to be removed and re-located when phase context is cleaned up
                 //.add(NamedCause.of(InternalNamedCauses.Teleporting.FROM_WORLD, fromWorld))
@@ -891,7 +892,7 @@ public final class EntityUtil {
             return null;
         }
         final PhaseData peek = CauseTracker.getInstance().getCurrentPhaseData();
-        final IPhaseState currentState = peek.state;
+        final IPhaseState<?> currentState = peek.state;
         final PhaseContext phaseContext = peek.context;
 
         if (!item.isEmpty()) {
@@ -963,7 +964,7 @@ public final class EntityUtil {
             return null;
         }
         final PhaseData peek = CauseTracker.getInstance().getCurrentPhaseData();
-        final IPhaseState currentState = peek.state;
+        final IPhaseState<?> currentState = peek.state;
         final PhaseContext phaseContext = peek.context;
 
         if (CauseTracker.ENABLED && !currentState.getPhase().ignoresItemPreMerging(currentState) && SpongeImpl.getGlobalConfig().getConfig().getOptimizations().doDropsPreMergeItemDrops()) {

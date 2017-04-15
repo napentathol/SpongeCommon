@@ -260,10 +260,10 @@ public abstract class MixinEntityLivingBase extends MixinEntity implements Livin
         final CauseTracker causeTracker = CauseTracker.getInstance();
         if (!this.world.isRemote) {
             final PhaseData peek = causeTracker.getCurrentPhaseData();
-            final IPhaseState state = peek.state;
+            final IPhaseState<?> state = peek.state;
             this.tracksEntityDeaths = CauseTracker.ENABLED && !causeTracker.getCurrentState().tracksEntityDeaths() && state != EntityPhase.State.DEATH;
             if (this.tracksEntityDeaths) {
-                final PhaseContext context = PhaseContext.start()
+                final PhaseContext context = EntityPhase.State.DEATH.start()
                         .add(NamedCause.source(this))
                         .add(NamedCause.of(InternalNamedCauses.General.DAMAGE_SOURCE, cause));
                 this.getNotifierUser().ifPresent(context::notifier);
@@ -509,7 +509,7 @@ public abstract class MixinEntityLivingBase extends MixinEntity implements Livin
                         final CauseTracker causeTracker = CauseTracker.getInstance();
                         final boolean enterDeathPhase = CauseTracker.ENABLED && !causeTracker.getCurrentState().tracksEntityDeaths();
                         if (enterDeathPhase) {
-                            final PhaseContext context = PhaseContext.start()
+                            final PhaseContext context = EntityPhase.State.DEATH.start()
                                     .add(NamedCause.source(this))
                                     .add(NamedCause.of(InternalNamedCauses.General.DAMAGE_SOURCE, source));
                             this.getCreatorUser().ifPresent(context::owner);
@@ -829,7 +829,7 @@ public abstract class MixinEntityLivingBase extends MixinEntity implements Livin
     private void causeTrackDeathUpdate(EntityLivingBase entityLivingBase) {
         if (!entityLivingBase.world.isRemote && CauseTracker.ENABLED) {
             final CauseTracker causeTracker = CauseTracker.getInstance();
-            causeTracker.switchToPhase(EntityPhase.State.DEATH_UPDATE, PhaseContext.start()
+            causeTracker.switchToPhase(EntityPhase.State.DEATH_UPDATE, EntityPhase.State.DEATH_UPDATE.start()
                     .addCaptures()
                     .addEntityDropCaptures()
                     .add(NamedCause.source(entityLivingBase))

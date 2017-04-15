@@ -53,7 +53,7 @@ final class PistonMovingPhaseState extends BlockPhaseState {
 
     @SuppressWarnings("unchecked")
     @Override
-    void unwind(PhaseContext phaseContext) {
+    void unwind(PhaseContext<?> phaseContext) {
         final List<BlockSnapshot> capturedBlocks = phaseContext.getCapturedBlocks();
         if (!TrackingUtil.processBlockCaptures(capturedBlocks, this, phaseContext)) {
             phaseContext.firstNamed(InternalNamedCauses.Piston.DUMMY_CALLBACK, MutableWrapper.class)

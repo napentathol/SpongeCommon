@@ -1075,6 +1075,6 @@ public interface PacketFunction {
 
     PacketFunction HANDLED_EXTERNALLY = UNKNOWN_PACKET;
 
-    void unwind(Packet<?> packet, IPacketState state, EntityPlayerMP player, PhaseContext context);
+    void unwind(Packet<?> packet, IPacketState state, EntityPlayerMP player, PhaseContext<?> context);
 
 }

@@ -278,11 +278,11 @@ public abstract class MixinBlock implements BlockType, IMixinBlock {
 
             final IMixinWorldServer mixinWorld = (IMixinWorldServer) worldIn;
             final CauseTracker causeTracker = CauseTracker.getInstance();
-            final IPhaseState currentState = causeTracker.getCurrentState();
+            final IPhaseState<?> currentState = causeTracker.getCurrentState();
             final boolean shouldEnterBlockDropPhase = !currentState.getPhase().alreadyCapturingItemSpawns(currentState) && !currentState.getPhase().isWorldGeneration(currentState);
             if (shouldEnterBlockDropPhase) {
                 // TODO: Change source to LocatableBlock
-                PhaseContext context = PhaseContext.start()
+                PhaseContext context = BlockPhase.State.BLOCK_DROP_ITEMS.start()
                         .add(NamedCause.source(mixinWorld.createSpongeBlockSnapshot(state, state, pos, 4)))
                         .addBlockCaptures()
                         .addEntityCaptures();
@@ -309,7 +309,7 @@ public abstract class MixinBlock implements BlockType, IMixinBlock {
     public void onDropBlockAsItemWithChanceReturn(net.minecraft.world.World worldIn, BlockPos pos, IBlockState state, float chance, int fortune, CallbackInfo ci) {
         if (!worldIn.isRemote && worldIn instanceof IMixinWorldServer) {
             final CauseTracker causeTracker = CauseTracker.getInstance();
-            final IPhaseState currentState = causeTracker.getCurrentState();
+            final IPhaseState<?> currentState = causeTracker.getCurrentState();
             final boolean shouldEnterBlockDropPhase = !currentState.getPhase().alreadyCapturingItemSpawns(currentState) && !currentState.getPhase().isWorldGeneration(currentState);
             if (shouldEnterBlockDropPhase) {
                 causeTracker.completePhase(BlockPhase.State.BLOCK_DROP_ITEMS);
@@ -329,7 +329,7 @@ public abstract class MixinBlock implements BlockType, IMixinBlock {
         final boolean allowTileDrops = gameRules.getBoolean(argument);
         if (allowTileDrops && worldIn instanceof IMixinWorldServer) {
             final PhaseData currentPhase = CauseTracker.getInstance().getCurrentPhaseData();
-            final IPhaseState currentState = currentPhase.state;
+            final IPhaseState<?> currentState = currentPhase.state;
             if (canCaptureItems && currentState.tracksBlockSpecificDrops()) {
                 final PhaseContext context = currentPhase.context;
                 final Multimap<BlockPos, ItemDropData> multimap = context.getCapturedBlockDrops();

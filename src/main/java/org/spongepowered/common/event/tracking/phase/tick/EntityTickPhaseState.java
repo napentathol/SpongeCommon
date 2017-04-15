@@ -77,7 +77,7 @@ class EntityTickPhaseState extends TickPhaseState {
 
     @SuppressWarnings("unchecked")
     @Override
-    public void processPostTick(PhaseContext phaseContext) {
+    public void unwind(PhaseContext<?> phaseContext) {
         final Entity tickingEntity = phaseContext.getSource(Entity.class)
                 .orElseThrow(TrackingUtil.throwWithContext("Not ticking on an Entity!", phaseContext));
         final Optional<User> creator = phaseContext.getOwner();
@@ -339,7 +339,7 @@ class EntityTickPhaseState extends TickPhaseState {
     }
 
     @Override
-    public Cause generateTeleportCause(PhaseContext context) {
+    public Cause generateTeleportCause(PhaseContext<?> context) {
         final Entity entity = context.getSource(Entity.class)
                 .orElseThrow(TrackingUtil.throwWithContext("Expected to be ticking an entity!", context));
         return Cause
@@ -354,7 +354,7 @@ class EntityTickPhaseState extends TickPhaseState {
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Override
     public void handleBlockChangeWithUser(@Nullable BlockChange blockChange, Transaction<BlockSnapshot> transaction,
-        PhaseContext context) {
+        PhaseContext<?> context) {
         if (blockChange == BlockChange.BREAK) {
             final Entity tickingEntity = context.getSource(Entity.class).get();
             final BlockPos blockPos = VecHelper.toBlockPos(transaction.getOriginal().getPosition());
@@ -372,7 +372,7 @@ class EntityTickPhaseState extends TickPhaseState {
 
 
     @Override
-    public void associateAdditionalBlockChangeCauses(PhaseContext context, Cause.Builder builder) {
+    public void associateAdditionalBlockChangeCauses(PhaseContext<?> context, Cause.Builder builder) {
         final Entity tickingEntity = context.getSource(Entity.class)
                 .orElseThrow(TrackingUtil.throwWithContext("Not ticking on an Entity!", context));
         builder.named(NamedCause.owner(tickingEntity));
@@ -381,12 +381,12 @@ class EntityTickPhaseState extends TickPhaseState {
 
 
     @Override
-    public void processPostSpawns(PhaseContext phaseContext, ArrayList<Entity> entities) {
+    public void processPostSpawns(PhaseContext<?> phaseContext, ArrayList<Entity> entities) {
         super.processPostSpawns(phaseContext, entities);
     }
 
     @Override
-    public void appendExplosionContext(PhaseContext explosionContext, PhaseContext context) {
+    public void appendExplosionContext(PhaseContext<?> explosionContext, PhaseContext<?> context) {
         context.getOwner().ifPresent(explosionContext::owner);
         context.getNotifier().ifPresent(explosionContext::notifier);
         final Entity tickingEntity = context.getSource(Entity.class)
@@ -395,7 +395,7 @@ class EntityTickPhaseState extends TickPhaseState {
     }
 
     @Override
-    public boolean spawnEntityOrCapture(PhaseContext context, Entity entity, int chunkX, int chunkZ) {
+    public boolean spawnEntityOrCapture(PhaseContext<?> context, Entity entity, int chunkX, int chunkZ) {
         final Entity tickingEntity = context.getSource(Entity.class)
                 .orElseThrow(TrackingUtil.throwWithContext("Not ticking on an Entity!", context));
         final Optional<User> creator = context.getOwner();

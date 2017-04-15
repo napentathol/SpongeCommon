@@ -45,11 +45,16 @@ import org.spongepowered.common.registry.type.event.InternalSpawnTypes;
 
 import java.util.ArrayList;
 
-public interface IPacketState extends IPhaseState {
+public interface IPacketState extends IPhaseState<PacketContext> {
 
     boolean matches(int packetState);
 
-    default void populateContext(EntityPlayerMP playerMP, Packet<?> packet, PhaseContext context) {
+    @Override
+    default PacketContext start() {
+        return new PacketContext();
+    }
+
+    default void populateContext(EntityPlayerMP playerMP, Packet<?> packet, PhaseContext<?> context) {
 
     }
 
@@ -74,7 +79,7 @@ public interface IPacketState extends IPhaseState {
      *  @param phaseContext The phase context
      * @param entities The list of entities to spawn
      */
-    default void postSpawnEntities(PhaseContext phaseContext, ArrayList<Entity> entities) {
+    default void postSpawnEntities(PhaseContext<?> phaseContext, ArrayList<Entity> entities) {
         final Player player =
                 phaseContext.getSource(Player.class)
                         .orElseThrow(TrackingUtil.throwWithContext("Expected to be capturing a player packet, but didn't get anything",
@@ -102,7 +107,7 @@ public interface IPacketState extends IPhaseState {
      * @param chunkZ
      * @return True if the entity was spawned
      */
-    default boolean spawnEntity(PhaseContext context, Entity entity, int chunkX, int chunkZ) {
+    default boolean spawnEntity(PhaseContext<?> context, Entity entity, int chunkX, int chunkZ) {
         final net.minecraft.entity.Entity minecraftEntity = (net.minecraft.entity.Entity) entity;
         final WorldServer minecraftWorld = (WorldServer) minecraftEntity.world;
         final Player player = context.getSource(Player.class)
@@ -128,7 +133,7 @@ public interface IPacketState extends IPhaseState {
         return false;
     }
 
-    default void appendContextPreExplosion(PhaseContext phaseContext, PhaseData currentPhaseData) {
+    default void appendContextPreExplosion(PhaseContext<?> phaseContext, PhaseData currentPhaseData) {
         currentPhaseData.context.first(Player.class).ifPresent(player -> phaseContext.add(NamedCause.source(player)));
     }
 

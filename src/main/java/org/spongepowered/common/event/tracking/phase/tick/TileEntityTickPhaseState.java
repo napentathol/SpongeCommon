@@ -61,21 +61,21 @@ class TileEntityTickPhaseState extends LocationBasedTickPhaseState {
     }
 
     @Override
-    Location<World> getLocationSourceFromContext(PhaseContext context) {
+    Location<World> getLocationSourceFromContext(PhaseContext<?> context) {
         return context.getSource(TileEntity.class)
                 .orElseThrow(TrackingUtil.throwWithContext("Expected to be ticking over a TileEntity!", context))
                 .getLocation();
     }
 
     @Override
-    LocatableBlock getLocatableBlockSourceFromContext(PhaseContext context) {
+    LocatableBlock getLocatableBlockSourceFromContext(PhaseContext<?> context) {
         return context.getSource(TileEntity.class)
                 .orElseThrow(TrackingUtil.throwWithContext("Expected to be ticking over a TileEntity!", context))
                 .getLocatableBlock();
     }
 
     @Override
-    public void processPostTick(PhaseContext phaseContext) {
+    public void unwind(PhaseContext<?> phaseContext) {
         final TileEntity tickingTile = phaseContext.getSource(TileEntity.class)
                 .orElseThrow(TrackingUtil.throwWithContext("Not ticking on a TileEntity!", phaseContext));
         final Optional<User> notifier = phaseContext.getNotifier();
@@ -118,14 +118,14 @@ class TileEntityTickPhaseState extends LocationBasedTickPhaseState {
     }
 
     @Override
-    public void associateAdditionalBlockChangeCauses(PhaseContext context, Cause.Builder builder) {
+    public void associateAdditionalBlockChangeCauses(PhaseContext<?> context, Cause.Builder builder) {
         final TileEntity tickingTile = context.getSource(TileEntity.class)
                 .orElseThrow(TrackingUtil.throwWithContext("Not ticking on a TileEntity!", context));
         builder.named(NamedCause.notifier(tickingTile));
     }
 
     @Override
-    public void associateBlockEventNotifier(PhaseContext context, BlockPos pos, IMixinBlockEventData blockEvent) {
+    public void associateBlockEventNotifier(PhaseContext<?> context, BlockPos pos, IMixinBlockEventData blockEvent) {
         final TileEntity tickingTile = context.getSource(TileEntity.class)
                 .orElseThrow(TrackingUtil.throwWithContext("Expected to be ticking a block, but found none!", context));
         blockEvent.setTickTileEntity(tickingTile);
@@ -139,7 +139,7 @@ class TileEntityTickPhaseState extends LocationBasedTickPhaseState {
     }
 
     @Override
-    public void appendExplosionContext(PhaseContext explosionContext, PhaseContext context) {
+    public void appendExplosionContext(PhaseContext<?> explosionContext, PhaseContext<?> context) {
         context.getOwner().ifPresent(explosionContext::owner);
         context.getNotifier().ifPresent(explosionContext::notifier);
         final TileEntity tickingTile = context.getSource(TileEntity.class)
@@ -148,7 +148,7 @@ class TileEntityTickPhaseState extends LocationBasedTickPhaseState {
     }
 
     @Override
-    public boolean spawnEntityOrCapture(PhaseContext context, Entity entity, int chunkX, int chunkZ) {
+    public boolean spawnEntityOrCapture(PhaseContext<?> context, Entity entity, int chunkX, int chunkZ) {
         final TileEntity tickingTile = context.getSource(TileEntity.class)
                 .orElseThrow(TrackingUtil.throwWithContext("Not ticking on a TileEntity!", context));
         final Optional<User> notifier = context.getNotifier();

@@ -22,35 +22,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.common.interfaces.block.tile;
+package org.spongepowered.common.event.tracking.phase.general;
 
-import com.flowpowered.math.vector.Vector3i;
-import org.spongepowered.api.data.type.StructureMode;
+import org.spongepowered.common.event.tracking.DefaultPhaseContext;
+import org.spongepowered.common.event.tracking.IPhaseState;
 
-public interface IMixinTileEntityStructure {
+/**
+ * Entered into on all worlds *except* the one in which we're currently ticking a te/block
+ * It indicates that the cross-world modification is expected, meaning we shouldn't log
+ * a message
+ */
+public class MarkerCrossWorld extends GeneralState<DefaultPhaseContext> {
 
-    String getAuthor();
+    @Override
+    public DefaultPhaseContext start() {
+        return new DefaultPhaseContext();
+    }
 
-    void setAuthor(String author);
+    @Override
+    public boolean canSwitchTo(IPhaseState<?> state) {
+        return true;
+    }
 
-    boolean shouldIgnoreEntities();
+    @Override
+    public void unwind(DefaultPhaseContext context) {
 
-    float getIntegrity();
+    }
 
-    StructureMode getMode();
-
-    void setMode(StructureMode mode);
-
-    Vector3i getPosition();
-
-    void setPosition(Vector3i position);
-
-    boolean shouldShowAir();
-
-    boolean shouldShowBoundingBox();
-
-    Vector3i getSize();
-
-    void setSize(Vector3i size);
-
+    @Override
+    public boolean requiresBlockCapturing() {
+        return false;
+    }
 }

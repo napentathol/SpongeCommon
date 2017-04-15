@@ -242,7 +242,7 @@ public class SpongeCommonEventFactory {
     public static ChangeBlockEvent.Pre callChangeBlockEventPre(IMixinWorldServer worldIn, ImmutableList<Location<World>> locations, NamedCause namedWorldCause, Object source) {
         final CauseTracker causeTracker = CauseTracker.getInstance();
         final PhaseData data = causeTracker.getCurrentPhaseData();
-        final IPhaseState phaseState = data.state;
+        final IPhaseState<?> phaseState = data.state;
         if (source == null) {
             source = data.context.getSource(LocatableBlock.class).orElse(null);
             if (source == null) {
@@ -281,7 +281,7 @@ public class SpongeCommonEventFactory {
             builder.owner(owner);
         }
         if (notifier != null) {
-            if (!(phaseState.getPhase().appendPreBlockProtectedCheck(builder, phaseState, data.context, causeTracker))) {
+            if (!(phaseState.appendPreBlockProtectedCheck(builder, data.context, causeTracker))) {
                 builder.notifier(notifier);
             }
         }
@@ -402,11 +402,11 @@ public class SpongeCommonEventFactory {
         return SpongeCommonEventFactory.callChangeBlockEventPre(world, ImmutableList.copyOf(locations), NamedCause.of(namedCause, world), locatable).isCancelled();
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public static NotifyNeighborBlockEvent callNotifyNeighborEvent(World world, BlockPos sourcePos, EnumSet notifiedSides) {
         final CauseTracker causeTracker = CauseTracker.getInstance();
         final PhaseData peek = causeTracker.getCurrentPhaseData();
-        final PhaseContext context = peek.context;
+        final PhaseContext<?> context = peek.context;
         // Don't fire notify events during world gen or while restoring
         if (peek.state.getPhase().isWorldGeneration(peek.state) || peek.state == State.RESTORING_BLOCKS) {
             return null;
@@ -434,7 +434,7 @@ public class SpongeCommonEventFactory {
                 builder.named(NamedCause.notifier(user));
             } else {
                 final IMixinChunk mixinChunk = (IMixinChunk) ((WorldServer) world).getChunkFromBlockCoords(sourcePos);
-                peek.state.getPhase().populateCauseForNotifyNeighborEvent(peek.state, context, builder, causeTracker, mixinChunk, sourcePos);
+                ((IPhaseState) peek.state).populateCauseForNotifyNeighborEvent(context, builder, causeTracker, mixinChunk, sourcePos);
             }
         }
 
