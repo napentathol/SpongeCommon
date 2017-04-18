@@ -42,8 +42,17 @@ import org.spongepowered.common.registry.type.event.InternalSpawnTypes;
 
 import java.util.ArrayList;
 
-class DimensionTickPhaseState extends TickPhaseState {
+class DimensionTickPhaseState extends TickPhaseState<DimensionTickPhaseState.DimensionContext> {
     DimensionTickPhaseState() {
+    }
+
+    public static final class DimensionContext extends TickContext<DimensionContext> {
+
+    }
+
+    @Override
+    public DimensionContext start() {
+        return new DimensionContext();
     }
 
     @Override
@@ -52,7 +61,7 @@ class DimensionTickPhaseState extends TickPhaseState {
     }
 
     @Override
-    public void unwind(PhaseContext<?> phaseContext) {
+    public void unwind(DimensionContext phaseContext) {
         phaseContext.getCapturedBlockSupplier()
                 .ifPresentAndNotEmpty(blockSnapshots -> {
                     TrackingUtil.processBlockCaptures(blockSnapshots, this, phaseContext);
@@ -111,7 +120,7 @@ class DimensionTickPhaseState extends TickPhaseState {
 
      */
     @Override
-    public boolean spawnEntityOrCapture(PhaseContext<?> context, Entity entity, int chunkX, int chunkZ) {
+    public boolean spawnEntityOrCapture(DimensionContext context, Entity entity, int chunkX, int chunkZ) {
         final net.minecraft.entity.Entity minecraftEntity = (net.minecraft.entity.Entity) entity;
         final WorldServer minecraftWorld = (WorldServer) minecraftEntity.world;
         final User user = context.getNotifier().orElseGet(() -> context.getOwner().orElse(null));

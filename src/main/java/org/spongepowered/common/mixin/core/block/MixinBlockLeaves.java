@@ -31,6 +31,7 @@ import net.minecraft.block.BlockOldLeaf;
 import net.minecraft.block.BlockPlanks;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.WorldServer;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.data.key.Key;
 import org.spongepowered.api.data.key.Keys;
@@ -85,10 +86,11 @@ public abstract class MixinBlockLeaves extends MixinBlock {
                     .location(new Location<World>((World) worldIn, pos.getX(), pos.getY(), pos.getZ()))
                     .state((BlockState) state)
                     .build();
-            causeTracker.switchToPhase(BlockPhase.State.BLOCK_DECAY, BlockPhase.State.BLOCK_DECAY.start()
-                    .add(NamedCause.source(locatable))
+            causeTracker.switchToPhase(BlockPhase.State.BLOCK_DECAY.start()
+                    .block(locatable)
+                    .world((WorldServer) worldIn)
                     .addCaptures()
-                    .complete());
+                    .build());
         }
         boolean result = worldIn.setBlockState(pos, state, flags);
         if (isBlockAlready && !isWorldGen) {

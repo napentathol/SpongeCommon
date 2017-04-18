@@ -84,7 +84,7 @@ class GeneralGenerationPhaseState implements IPhaseState<GenerationContext> {
 
     @Override
     public GenerationContext start() {
-        return new GenerationContext();
+        return new GenerationContext(this);
     }
 
     @Override
@@ -104,6 +104,7 @@ class GeneralGenerationPhaseState implements IPhaseState<GenerationContext> {
             .build();
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public final void unwind(GenerationContext context) {
         final List<Entity> spawnedEntities = context.getCapturedEntitySupplier().orEmptyList();
