@@ -35,19 +35,14 @@ import org.spongepowered.api.event.entity.SpawnEntityEvent;
 import org.spongepowered.common.SpongeImpl;
 import org.spongepowered.common.entity.EntityUtil;
 import org.spongepowered.common.event.tracking.IPhaseState;
-import org.spongepowered.common.event.tracking.PhaseContext;
 import org.spongepowered.common.event.tracking.TrackingUtil;
 import org.spongepowered.common.event.tracking.phase.TrackingPhases;
 import org.spongepowered.common.registry.type.event.InternalSpawnTypes;
 
 import java.util.ArrayList;
 
-class DimensionTickPhaseState extends TickPhaseState<DimensionTickPhaseState.DimensionContext> {
+class DimensionTickPhaseState extends TickPhaseState<DimensionContext> {
     DimensionTickPhaseState() {
-    }
-
-    public static final class DimensionContext extends TickContext<DimensionContext> {
-
     }
 
     @Override
@@ -105,7 +100,7 @@ class DimensionTickPhaseState extends TickPhaseState<DimensionTickPhaseState.Dim
                 });
     }
     @Override
-    public void associateAdditionalBlockChangeCauses(PhaseContext<?> context, Cause.Builder builder) {
+    public void associateAdditionalBlockChangeCauses(DimensionContext context, Cause.Builder builder) {
 
     }
 

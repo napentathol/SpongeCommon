@@ -63,11 +63,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
-final class ExplosionState extends GeneralState<ExplosionState.ExplosionContext> {
-
-    public static final class ExplosionContext extends PhaseContext<ExplosionContext> {
-
-    }
+final class ExplosionState extends GeneralState<ExplosionContext> {
 
     @Override
     public ExplosionContext start() {
@@ -95,7 +91,7 @@ final class ExplosionState extends GeneralState<ExplosionState.ExplosionContext>
     }
 
     @Override
-    void unwind(ExplosionContext context) {
+    public void unwind(ExplosionContext context) {
         final Optional<Explosion> explosion = context.getCaptureExplosion().getExplosion();
         if (!explosion.isPresent()) { // More than likely never will happen
             return;
@@ -296,7 +292,7 @@ final class ExplosionState extends GeneralState<ExplosionState.ExplosionContext>
     }
 
     @Override
-    public boolean spawnEntityOrCapture(ExplosionState.ExplosionContext context, Entity entity, int chunkX, int chunkZ) {
+    public boolean spawnEntityOrCapture(ExplosionContext context, Entity entity, int chunkX, int chunkZ) {
         final BlockPos blockPos = context.getBlockPosition()
                 .orElseThrow(TrackingUtil.throwWithContext("Expected to be capturing a block position during an explosion!", context));
         final Multimap<BlockPos, net.minecraft.entity.Entity> blockPosEntityMultimap = context.getBlockEntitySpawnSupplier().get();

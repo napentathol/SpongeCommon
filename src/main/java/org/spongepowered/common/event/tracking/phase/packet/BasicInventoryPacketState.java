@@ -111,4 +111,8 @@ public class BasicInventoryPacketState extends BasicPacketState {
         return true;
     }
 
+    @Override
+    public PhaseContext start() {
+        return null;
+    }
 }
