@@ -22,31 +22,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.common.interfaces;
+package org.spongepowered.test;
 
-import net.minecraft.entity.player.EntityPlayer;
-import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
-import org.spongepowered.api.plugin.PluginContainer;
-import org.spongepowered.common.item.inventory.adapter.impl.slots.SlotAdapter;
+import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.item.inventory.ChangeInventoryEvent;
+import org.spongepowered.api.item.ItemTypes;
+import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.plugin.Plugin;
 
-import java.util.List;
-import java.util.function.Predicate;
+/**
+ * Bedrock in hoppers prevents them from working
+ */
+@Plugin(id = "hoppereventtest", name = "Hopper Event Test", description = "A plugin to test hopper event")
+public class HopperEventTest {
 
-import javax.annotation.Nullable;
-
-public interface IMixinContainer extends IMixinInventory {
-
-    boolean capturingInventory();
-
-    void setCaptureInventory(boolean flag);
-
-    void detectAndSendChanges(boolean captureOnly);
-
-    void setCanInteractWith(@Nullable Predicate<EntityPlayer> predicate);
-    
-    void setSpectatorChest(boolean spectatorChest);
-
-    SlotAdapter getSlotAdapter(int slot);
-
-    void setPlugin(PluginContainer plugin);
+    @Listener
+    public void onPreTransferEvent(ChangeInventoryEvent.Transfer.Pre event) {
+        if (event.getSourceInventory().queryAny(ItemStack.of(ItemTypes.BEDROCK, 1)).capacity() != 0) {
+            event.setCancelled(true);
+        }
+    }
 }
