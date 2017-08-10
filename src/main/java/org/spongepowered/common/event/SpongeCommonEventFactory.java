@@ -47,6 +47,7 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.CPacketCreativeInventoryAction;
 import net.minecraft.network.play.server.SPacketOpenWindow;
+import net.minecraft.tileentity.TileEntityLockableLoot;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.EnumFacing;
@@ -86,8 +87,10 @@ import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.InventoryArchetype;
 import org.spongepowered.api.item.inventory.InventoryArchetypes;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.item.inventory.property.SlotIndex;
 import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
 import org.spongepowered.api.item.inventory.type.CarriedInventory;
+import org.spongepowered.api.item.inventory.type.OrderedInventory;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.channel.MessageChannel;
 import org.spongepowered.api.util.Direction;
@@ -108,11 +111,14 @@ import org.spongepowered.common.event.tracking.PhaseData;
 import org.spongepowered.common.event.tracking.phase.block.BlockPhase.State;
 import org.spongepowered.common.interfaces.IMixinChunk;
 import org.spongepowered.common.interfaces.IMixinContainer;
+import org.spongepowered.common.interfaces.IMixinInventory;
 import org.spongepowered.common.interfaces.entity.IMixinEntity;
 import org.spongepowered.common.interfaces.entity.player.IMixinEntityPlayerMP;
 import org.spongepowered.common.interfaces.entity.player.IMixinInventoryPlayer;
 import org.spongepowered.common.interfaces.world.IMixinWorldServer;
 import org.spongepowered.common.item.inventory.SpongeItemStackSnapshot;
+import org.spongepowered.common.item.inventory.adapter.InventoryAdapter;
+import org.spongepowered.common.item.inventory.adapter.impl.MinecraftInventoryAdapter;
 import org.spongepowered.common.item.inventory.adapter.impl.slots.SlotAdapter;
 import org.spongepowered.common.item.inventory.custom.CustomInventory;
 import org.spongepowered.common.item.inventory.util.ContainerUtil;
@@ -131,6 +137,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -884,4 +892,63 @@ public class SpongeCommonEventFactory {
         return true;
     }
 
+    public static ChangeInventoryEvent.Transfer.Pre callTransferPre(net.minecraft.tileentity.TileEntity source, Object destination) {
+        Cause.Builder builder = Cause.source(source);
+        ChangeInventoryEvent.Transfer.Pre event = SpongeEventFactory.createChangeInventoryEventTransferPre(builder.build(), ((Inventory) source), ((Inventory) destination));
+        SpongeImpl.postEvent(event);
+        return event;
+    }
+
+    public static ItemStack callTransferPost(TileEntityLockableLoot te, int i, ItemStack stack, Object destination, ItemStack remainder) {
+        // For Hopper this is always empty when transfer worked
+        // For Droppers the remainder is one less than the original stack
+        if (remainder.isEmpty() || remainder.getCount() == stack.getCount() - 1) {
+            captureInsertOrigin(te, i, stack);
+            Cause.Builder builder = Cause.source(te);
+
+            if (!(destination instanceof Inventory)) {
+                throw new IllegalStateException("Target Inventory is not an inventory"); // TODO forge inventory interface?
+            }
+            ChangeInventoryEvent.Transfer.Post event =
+                    SpongeEventFactory.createChangeInventoryEventTransferPost(builder.build(), ((Inventory) te), ((Inventory) destination), ((IMixinInventory) te).getCapturedTransactions());
+
+            SpongeImpl.postEvent(event);
+            if (event.isCancelled()) {
+                // restore inventories
+                setSlots(event.getTransactions(), SlotTransaction::getOriginal);
+                // For hoppers we set the remainder so vanilla thinks there was not enough place for the item and tries again
+                remainder = stack;
+            } else {
+                // handle custom inventory transaction result
+                setSlots(event.getTransactions(), SlotTransaction::getFinal);
+            }
+
+            ((IMixinInventory) te).getCapturedTransactions().clear();
+        }
+        return remainder;
+    }
+
+    private static void setSlots(List<SlotTransaction> transactions, Function<SlotTransaction, ItemStackSnapshot> func) {
+        transactions.forEach(t -> t.getSlot().set(func.apply(t).createStack()));
+    }
+
+    private static void captureInsertOrigin(TileEntityLockableLoot te, int i, ItemStack stack) {
+        org.spongepowered.api.item.inventory.Slot
+                slot = ((OrderedInventory) ((MinecraftInventoryAdapter) te).query(OrderedInventory.class)).getSlot(SlotIndex.of(i)).get();
+        SlotTransaction trans = new SlotTransaction(slot,
+                ItemStackUtil.snapshotOf(stack),
+                ItemStackUtil.snapshotOf(slot.peek().orElse(org.spongepowered.api.item.inventory.ItemStack.empty())));
+        ((IMixinInventory) te).getCapturedTransactions().add(trans);
+    }
+
+    public static ItemStack captureInsertRemote(IInventory source, InventoryAdapter destination, int index, Supplier<ItemStack> insert) {
+        org.spongepowered.api.item.inventory.Slot slot = ((OrderedInventory) destination.query(OrderedInventory.class)).getSlot(SlotIndex.of(index)).get();
+        ItemStackSnapshot from = slot.peek().map(ItemStackUtil::snapshotOf).orElse(ItemStackSnapshot.NONE);
+        ItemStack remaining = insert.get();
+        ItemStackSnapshot to = slot.peek().map(ItemStackUtil::snapshotOf).orElse(ItemStackSnapshot.NONE);
+
+        ((IMixinInventory) source).getCapturedTransactions().add(new SlotTransaction(slot, from, to));
+
+        return remaining;
+    }
 }

@@ -37,7 +37,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
-import org.spongepowered.common.item.inventory.util.InventoryUtil;
+import org.spongepowered.common.event.SpongeCommonEventFactory;
 
 @Mixin(BlockDropper.class)
 public abstract class MixinBlockDropper {
@@ -63,7 +63,7 @@ public abstract class MixinBlockDropper {
             EnumFacing enumfacing, BlockPos blockpos, IInventory iinventory, ItemStack itemstack1) {
         // after setInventorySlotContents
         tileentitydispenser.setInventorySlotContents(i, itemstack1);
-        InventoryUtil.handleTransferPost(tileentitydispenser, i, itemstack, iinventory, itemstack);
+        SpongeCommonEventFactory.callTransferPost(tileentitydispenser, i, itemstack, iinventory, itemstack);
         callbackInfo.cancel();
     }
 
@@ -74,7 +74,7 @@ public abstract class MixinBlockDropper {
             BlockSourceImpl blocksourceimpl, TileEntityDispenser tileentitydispenser, int i, ItemStack itemstack,
             EnumFacing enumfacing, BlockPos blockpos, IInventory iinventory) {
         // Before putStackInInventoryAllSlots
-        if (InventoryUtil.handleTransferPre(tileentitydispenser, iinventory).isCancelled()) {
+        if (SpongeCommonEventFactory.callTransferPre(tileentitydispenser, iinventory).isCancelled()) {
             ci.cancel();
         }
     }

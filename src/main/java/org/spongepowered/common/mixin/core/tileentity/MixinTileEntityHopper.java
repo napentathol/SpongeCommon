@@ -48,6 +48,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import org.spongepowered.common.entity.PlayerTracker;
+import org.spongepowered.common.event.SpongeCommonEventFactory;
 import org.spongepowered.common.interfaces.IMixinChunk;
 import org.spongepowered.common.interfaces.IMixinInventory;
 import org.spongepowered.common.interfaces.entity.IMixinEntity;
@@ -58,7 +59,6 @@ import org.spongepowered.common.item.inventory.lens.impl.MinecraftLens;
 import org.spongepowered.common.item.inventory.lens.impl.ReusableLens;
 import org.spongepowered.common.item.inventory.lens.impl.collections.SlotCollection;
 import org.spongepowered.common.item.inventory.lens.impl.comp.GridInventoryLensImpl;
-import org.spongepowered.common.item.inventory.util.InventoryUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -123,7 +123,7 @@ public abstract class MixinTileEntityHopper extends MixinTileEntityLockableLoot 
             target = "Lnet/minecraft/item/ItemStack;isEmpty()Z", ordinal = 1))
     private void afterPutStackInSlots(CallbackInfoReturnable<Boolean> cir, IInventory iInventory, EnumFacing enumFacing, int i, ItemStack itemStack, ItemStack itemStack1) {
         // after putStackInInventoryAllSlots if the transfer worked
-        itemStack1 = InventoryUtil.handleTransferPost(((TileEntityHopper)(Object) this), i, itemStack, iInventory, itemStack1);
+        itemStack1 = SpongeCommonEventFactory.callTransferPost(((TileEntityHopper)(Object) this), i, itemStack, iInventory, itemStack1);
     }
 
     @Redirect(method = "putStackInInventoryAllSlots", at = @At(value = "INVOKE", target = "Lnet/minecraft/tileentity/TileEntityHopper;insertStack(Lnet/minecraft/inventory/IInventory;Lnet/minecraft/inventory/IInventory;Lnet/minecraft/item/ItemStack;ILnet/minecraft/util/EnumFacing;)Lnet/minecraft/item/ItemStack;"))
@@ -133,13 +133,13 @@ public abstract class MixinTileEntityHopper extends MixinTileEntityLockableLoot 
             return insertStack(source, destination, stack, index, direction);
         }
 
-        return InventoryUtil
+        return SpongeCommonEventFactory
                 .captureInsertRemote(source, ((InventoryAdapter) destination), index, () -> insertStack(source, destination, stack, index, direction));
     }
 
     @Inject(method = "transferItemsOut", cancellable = true, locals = LocalCapture.CAPTURE_FAILEXCEPTION, at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockHopper;getFacing(I)Lnet/minecraft/util/EnumFacing;"))
     private void onTransferItemsOut(CallbackInfoReturnable<Boolean> cir, IInventory iInventory) {
-        if (InventoryUtil.handleTransferPre(((TileEntityHopper) ((Object) this)), iInventory).isCancelled()) {
+        if (SpongeCommonEventFactory.callTransferPre(((TileEntityHopper) ((Object) this)), iInventory).isCancelled()) {
             cir.setReturnValue(false);
         }
     }
