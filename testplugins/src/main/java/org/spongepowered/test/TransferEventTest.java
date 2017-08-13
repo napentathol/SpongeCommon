@@ -34,7 +34,7 @@ import org.spongepowered.api.plugin.Plugin;
  * Bedrock in hoppers prevents them from working
  */
 @Plugin(id = "hoppereventtest", name = "Hopper Event Test", description = "A plugin to test hopper event")
-public class HopperEventTest {
+public class TransferEventTest {
 
     @Listener
     public void onPreTransferEvent(ChangeInventoryEvent.Transfer.Pre event) {
