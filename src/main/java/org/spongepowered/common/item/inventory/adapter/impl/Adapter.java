@@ -39,6 +39,7 @@ import org.spongepowered.api.item.inventory.transaction.InventoryTransactionResu
 import org.spongepowered.api.item.inventory.transaction.InventoryTransactionResult.Type;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.translation.Translation;
+import org.spongepowered.common.SpongeImpl;
 import org.spongepowered.common.item.inventory.EmptyInventoryImpl;
 import org.spongepowered.common.item.inventory.adapter.InventoryAdapter;
 import org.spongepowered.common.item.inventory.lens.Fabric;
@@ -58,6 +59,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -367,22 +369,28 @@ public class Adapter implements MinecraftInventoryAdapter {
     /**
      * Used to calculate {@link #getPlugin()}.
      */
-    private final Container rootContainer;
+    private final Supplier<PluginContainer> pluginContainerSupplier;
 
     public Adapter(Fabric<IInventory> inventory, net.minecraft.inventory.Container container) {
-        this.inventory = inventory;
-        this.parent = this;
-        this.slots = this.initSlots(inventory, this);
-        this.lens = checkNotNull(this.initRootLens(), "root lens");
-        this.rootContainer = (Container) container;
+        this(inventory, null, Optional.empty(), ((Container) container)::getPlugin);
     }
 
-    public Adapter(Fabric<IInventory> inventory, @Nullable Lens<IInventory, net.minecraft.item.ItemStack> root, Inventory parent) {
+    public Adapter(Fabric<IInventory> inventory, @Nullable Lens<IInventory, net.minecraft.item.ItemStack> root, @Nullable Inventory parent) {
+        this(inventory, root, Optional.ofNullable(parent), Optional.ofNullable(parent)
+                .<Supplier<PluginContainer>>map(p -> p::getPlugin).orElse(SpongeImpl::getMinecraftPlugin));
+    }
+
+    protected Adapter(
+        final Fabric<IInventory> inventory,
+        final @Nullable Lens<IInventory, net.minecraft.item.ItemStack> root,
+        final Optional<Inventory> parent,
+        final Supplier<PluginContainer> pluginContainerSupplier
+    ) {
         this.inventory = inventory;
-        this.parent = checkNotNull(parent, "parent");
-        this.lens = root != null ? root : checkNotNull(this.initRootLens(), "root lens");
-        this.slots = this.initSlots(inventory, parent);
-        this.rootContainer = null;
+        this.parent = parent.orElse(this);
+        this.slots = this.initSlots(inventory, this.parent);
+        this.lens = Optional.ofNullable(root).orElse( checkNotNull(this.initRootLens(), "root lens") );
+        this.pluginContainerSupplier = pluginContainerSupplier;
     }
 
     protected SlotCollection initSlots(Fabric<IInventory> inventory, @Nullable Inventory parent) {
@@ -501,9 +509,6 @@ public class Adapter implements MinecraftInventoryAdapter {
 
     @Override
     public PluginContainer getPlugin() {
-        if (this.parent != this) {
-            return this.parent.getPlugin();
-        }
-        return this.rootContainer.getPlugin();
+        return pluginContainerSupplier.get();
     }
 }
